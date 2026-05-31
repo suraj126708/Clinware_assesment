@@ -69,4 +69,85 @@ public class ActivityServiceTest {
         String result = activityService.applyAnomalyLogic(20.0, 1, original);
         assertEquals(new StringBuilder(original).reverse().toString(), result);
     }
+
+    @Test
+    public void testBikeRideRecommendation() {
+        assertEquals("Great day for a bike ride!", activityService.recommendActivity(20.0, 2));
+        assertEquals("Great day for a bike ride!", activityService.recommendActivity(15.0, 3));
+    }
+
+    @Test
+    public void testRainRecommendation() {
+        assertEquals("Stay indoors and read a book.", activityService.recommendActivity(18.0, 61));
+        assertEquals("Stay indoors and read a book.", activityService.recommendActivity(18.0, 80));
+    }
+
+    @Test
+    public void testSnowRecommendation() {
+        assertEquals("Build a snowman!", activityService.recommendActivity(-2.0, 71));
+        assertEquals("Build a snowman!", activityService.recommendActivity(-5.0, 85));
+    }
+
+    @Test
+    public void testThunderstormRecommendation() {
+        assertEquals("Stay safe indoors!", activityService.recommendActivity(22.0, 95));
+        assertEquals("Stay safe indoors!", activityService.recommendActivity(22.0, 99));
+    }
+
+    @Test
+    public void testDefaultRecommendation() {
+        assertEquals("Check local conditions before heading out.", activityService.recommendActivity(20.0, 10));
+    }
+
+    @Test
+    public void testComputeAnomalyScoreTwinPrimeOddCode() {
+        // baseScore 16.2 rounds to 16; odd code 1 -> 16 ^ 15 = 31 (twin prime)
+        String result = activityService.computeAnomalyScore(16.2, 1);
+        assertTrue(result.startsWith("Score: 31 | "));
+        assertTrue(result.contains(new StringBuilder("Visit the museum.").reverse().toString()));
+    }
+
+    @Test
+    public void testComputeAnomalyScoreEvenCodeNoXor() {
+        String result = activityService.computeAnomalyScore(30.0, 2);
+        assertEquals("Score: 30 | Great day for a bike ride!", result);
+    }
+
+    @Test
+    public void testComputeAnomalyScoreOddNonTwinPrime() {
+        // baseScore 17, odd code 1 -> 17 ^ 15 = 30 (not prime)
+        String result = activityService.computeAnomalyScore(17.0, 1);
+        assertEquals("Score: 30 | Visit the museum.", result);
+    }
+
+    @Test
+    public void testAnomalyLogicEvenCodeReturnsOriginal() {
+        String original = "Great day for a bike ride!";
+        assertEquals(original, activityService.applyAnomalyLogic(20.0, 2, original));
+    }
+
+    @Test
+    public void testAnomalyLogicOddNonTwinPrimeReturnsOriginal() {
+        String original = "Stay home and relax.";
+        assertEquals(original, activityService.applyAnomalyLogic(20.0, 3, original));
+    }
+
+    @Test
+    public void testAnomalyLogicTwinPrimeViaPlusTwo() {
+        // score = 3 (twin prime with 5 via +2), even weather code
+        String original = "Hi";
+        assertEquals("iH", activityService.applyAnomalyLogic(3.75, 0, original));
+    }
+
+    @Test
+    public void testAnomalyLogicCompositeScoreNotTwinPrime() {
+        String original = "Hello";
+        assertEquals(original, activityService.applyAnomalyLogic(5.0, 0, original));
+    }
+
+    @Test
+    public void testAnomalyLogicScoreBelowTwoNotTwinPrime() {
+        String original = "Low";
+        assertEquals(original, activityService.applyAnomalyLogic(1.0, 0, original));
+    }
 }
